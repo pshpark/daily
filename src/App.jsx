@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const STORAGE_KEY = "daily-fan-log-records-tailwind-v2";
+const LEGACY_STORAGE_KEYS = [
+  "daily-fan-log-records-tailwind-v1",
+  "daily-fan-log-records-v2",
+  "daily-fan-log-records-v1",
+];
 
 const categoryOptions = [
   { value: "stream", label: "스트리밍" },
@@ -12,7 +17,7 @@ const categoryOptions = [
 ];
 
 const viewOptions = [
-  { value: "calendar", label: "캘린더", icon: "calendar" },
+  { value: "calendar", label: "홈", icon: "calendar" },
   { value: "collection", label: "컬렉션", icon: "grid" },
   { value: "gallery", label: "갤러리", icon: "image" },
 ];
@@ -33,17 +38,17 @@ const emptyRecord = {
 const buttonBase =
   "inline-flex items-center justify-center gap-2 rounded-2xl font-black transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50";
 
-const glassCard =
-  "rounded-[2rem] border border-white/70 bg-white/85 shadow-[0_10px_30px_rgba(17,24,39,0.07)] backdrop-blur-xl";
-
-const iconButton =
-  "grid h-11 w-11 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-950 transition hover:border-slate-300 hover:bg-slate-50";
-
 const primaryButton =
-  `${buttonBase} min-h-12 bg-slate-950 px-5 text-white shadow-[0_12px_24px_rgba(17,24,39,0.18)] hover:bg-slate-800`;
+  `${buttonBase} min-h-12 bg-neutral-950 px-5 text-white shadow-[0_12px_24px_rgba(10,10,10,0.18)] hover:bg-neutral-800`;
 
 const secondaryButton =
-  `${buttonBase} min-h-12 bg-slate-100 px-5 text-slate-700 hover:bg-slate-200`;
+  `${buttonBase} min-h-12 bg-neutral-100 px-5 text-neutral-700 hover:bg-neutral-200`;
+
+const iconButton =
+  "grid h-11 w-11 place-items-center rounded-2xl border border-neutral-200 bg-white text-neutral-950 transition hover:border-neutral-300 hover:bg-neutral-50";
+
+const glassCard =
+  "rounded-[2rem] border border-white/70 bg-white/80 shadow-[0_10px_30px_rgba(10,10,10,0.07)] backdrop-blur-xl";
 
 function Icon({ name, size = 20 }) {
   const icons = {
@@ -128,6 +133,8 @@ function Icon({ name, size = 20 }) {
         <path d="M20 4V11H13" />
       </>
     ),
+    chevronUp: <path d="M6 15L12 9L18 15" />,
+    chevronDown: <path d="M6 9L12 15L18 9" />,
   };
 
   return (
@@ -159,15 +166,27 @@ function toDateKey(date) {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 }
 
+function getDateFromKey(dateKey) {
+  return new Date(`${dateKey}T00:00:00`);
+}
+
 function getMonthTitle(date) {
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
 }
 
 function getReadableDate(dateKey) {
-  const date = new Date(`${dateKey}T00:00:00`);
+  const date = getDateFromKey(dateKey);
   const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
 
   return `${date.getFullYear()}.${pad2(date.getMonth() + 1)}.${pad2(date.getDate())} ${weekdays[date.getDay()]}요일`;
+}
+
+function getEnglishMonth(date) {
+  return date.toLocaleString("en-US", { month: "long" }).toUpperCase();
+}
+
+function getEnglishWeekday(date) {
+  return date.toLocaleString("en-US", { weekday: "short" });
 }
 
 function getDaysInMonth(year, monthIndex) {
@@ -361,7 +380,7 @@ function getCategoryPillClass(category) {
     goods: "bg-emerald-50 text-emerald-600",
     event: "bg-orange-50 text-orange-600",
     photo: "bg-fuchsia-50 text-fuchsia-600",
-    note: "bg-slate-100 text-slate-600",
+    note: "bg-neutral-100 text-neutral-600",
   };
 
   return `${base} ${styles[category] || styles.note}`;
@@ -369,11 +388,11 @@ function getCategoryPillClass(category) {
 
 function EmptyBlock({ icon = "calendar", title, description, actionLabel, onAction }) {
   return (
-    <div className="grid min-h-[260px] place-items-center rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50/70 px-6 py-10 text-center text-slate-400">
+    <div className="grid min-h-[260px] place-items-center rounded-[1.75rem] border border-dashed border-neutral-300 bg-neutral-50/70 px-6 py-10 text-center text-neutral-400">
       <div className="grid place-items-center">
         <Icon name={icon} size={34} />
-        <strong className="mt-4 block text-xl font-black text-slate-950">{title}</strong>
-        <p className="mt-2 max-w-sm text-sm font-bold leading-6 text-slate-500">
+        <strong className="mt-4 block text-xl font-black text-neutral-950">{title}</strong>
+        <p className="mt-2 max-w-sm text-sm font-bold leading-6 text-neutral-500">
           {description}
         </p>
         {actionLabel && (
@@ -449,7 +468,7 @@ function ImageEditorOverlay({ image, title, onSave, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-end justify-center bg-slate-950/55 p-0 backdrop-blur-md md:items-center md:p-6"
+      className="fixed inset-0 z-[70] flex items-end justify-center bg-neutral-950/55 p-0 backdrop-blur-md md:items-center md:p-6"
       onMouseDown={(event) => {
         event.stopPropagation();
 
@@ -462,11 +481,11 @@ function ImageEditorOverlay({ image, title, onSave, onClose }) {
         className="max-h-[94vh] w-full overflow-auto rounded-t-[2rem] bg-white shadow-[0_24px_70px_rgba(17,24,39,0.3)] md:max-w-3xl md:rounded-[2rem]"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <header className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/90 p-5 backdrop-blur-xl">
+        <header className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-neutral-200 bg-white/90 p-5 backdrop-blur-xl">
           <div>
-            <p className="text-xs font-black text-slate-400">Image Editor</p>
-            <h2 className="mt-1 text-2xl font-black text-slate-950">{title}</h2>
-            <p className="mt-1 text-sm font-bold text-slate-500">
+            <p className="text-xs font-black text-neutral-400">Image Editor</p>
+            <h2 className="mt-1 text-2xl font-black text-neutral-950">{title}</h2>
+            <p className="mt-1 text-sm font-bold text-neutral-500">
               캘린더 썸네일에 맞춰 9:16 세로 비율로 저장됩니다.
             </p>
           </div>
@@ -477,8 +496,8 @@ function ImageEditorOverlay({ image, title, onSave, onClose }) {
         </header>
 
         <div className="grid gap-5 p-5 md:grid-cols-[minmax(0,1fr)_260px]">
-          <div className="grid place-items-center rounded-[1.75rem] bg-slate-100 p-4">
-            <div className="relative aspect-[9/16] h-[min(62vh,620px)] max-h-[620px] w-auto overflow-hidden rounded-[1.5rem] bg-slate-950 shadow-[0_18px_50px_rgba(17,24,39,0.18)]">
+          <div className="grid place-items-center rounded-[1.75rem] bg-neutral-100 p-4">
+            <div className="relative aspect-[9/16] h-[min(62vh,620px)] max-h-[620px] w-auto overflow-hidden rounded-[1.5rem] bg-neutral-950 shadow-[0_18px_50px_rgba(17,24,39,0.18)]">
               <canvas
                 ref={previewCanvasRef}
                 className="block h-full w-full"
@@ -494,8 +513,8 @@ function ImageEditorOverlay({ image, title, onSave, onClose }) {
           </div>
 
           <div className="grid content-start gap-4">
-            <div className="rounded-3xl border border-slate-200 bg-white p-4">
-              <p className="text-sm font-black text-slate-950">회전</p>
+            <div className="rounded-3xl border border-neutral-200 bg-white p-4">
+              <p className="text-sm font-black text-neutral-950">회전</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <button type="button" className={secondaryButton} onClick={rotateLeft}>
                   <Icon name="rotate" size={17} />
@@ -509,7 +528,7 @@ function ImageEditorOverlay({ image, title, onSave, onClose }) {
               </div>
             </div>
 
-            <label className="grid gap-2 rounded-3xl border border-slate-200 bg-white p-4 text-sm font-black text-slate-950">
+            <label className="grid gap-2 rounded-3xl border border-neutral-200 bg-white p-4 text-sm font-black text-neutral-950">
               확대
               <input
                 type="range"
@@ -518,14 +537,14 @@ function ImageEditorOverlay({ image, title, onSave, onClose }) {
                 step="0.05"
                 value={settings.zoom}
                 onChange={(event) => updateSetting("zoom", Number(event.target.value))}
-                className="accent-slate-950"
+                className="accent-orange-500"
               />
-              <span className="text-xs font-bold text-slate-400">
+              <span className="text-xs font-bold text-neutral-400">
                 {Math.round(settings.zoom * 100)}%
               </span>
             </label>
 
-            <label className="grid gap-2 rounded-3xl border border-slate-200 bg-white p-4 text-sm font-black text-slate-950">
+            <label className="grid gap-2 rounded-3xl border border-neutral-200 bg-white p-4 text-sm font-black text-neutral-950">
               가로 위치
               <input
                 type="range"
@@ -534,11 +553,11 @@ function ImageEditorOverlay({ image, title, onSave, onClose }) {
                 step="1"
                 value={settings.positionX}
                 onChange={(event) => updateSetting("positionX", Number(event.target.value))}
-                className="accent-slate-950"
+                className="accent-orange-500"
               />
             </label>
 
-            <label className="grid gap-2 rounded-3xl border border-slate-200 bg-white p-4 text-sm font-black text-slate-950">
+            <label className="grid gap-2 rounded-3xl border border-neutral-200 bg-white p-4 text-sm font-black text-neutral-950">
               세로 위치
               <input
                 type="range"
@@ -547,13 +566,13 @@ function ImageEditorOverlay({ image, title, onSave, onClose }) {
                 step="1"
                 value={settings.positionY}
                 onChange={(event) => updateSetting("positionY", Number(event.target.value))}
-                className="accent-slate-950"
+                className="accent-orange-500"
               />
             </label>
 
             <button
               type="button"
-              className="min-h-11 rounded-2xl bg-slate-100 px-4 text-sm font-black text-slate-700 hover:bg-slate-200"
+              className="min-h-11 rounded-2xl bg-neutral-100 px-4 text-sm font-black text-neutral-700 hover:bg-neutral-200"
               onClick={resetEdit}
             >
               초기화
@@ -730,17 +749,17 @@ function RecordOverlay({
   if (isViewMode && record) {
     return (
       <div
-        className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 p-0 backdrop-blur-md md:items-center md:p-6"
+        className="fixed inset-0 z-50 flex items-end justify-center bg-neutral-950/45 p-0 backdrop-blur-md md:items-center md:p-6"
         onMouseDown={onClose}
       >
         <article
           className="max-h-[92vh] w-full overflow-auto rounded-t-[2rem] border border-white/60 bg-white shadow-[0_24px_70px_rgba(17,24,39,0.22)] md:max-w-2xl md:rounded-[2rem]"
           onMouseDown={(event) => event.stopPropagation()}
         >
-          <header className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/90 p-5 backdrop-blur-xl md:p-6">
+          <header className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-neutral-200 bg-white/90 p-5 backdrop-blur-xl md:p-6">
             <div className="min-w-0">
-              <p className="text-sm font-black text-slate-400">{getReadableDate(record.date)}</p>
-              <h2 className="mt-1 truncate text-2xl font-black leading-tight text-slate-950">
+              <p className="text-sm font-black text-neutral-400">{getReadableDate(record.date)}</p>
+              <h2 className="mt-1 truncate text-2xl font-black leading-tight text-neutral-950">
                 {record.title}
               </h2>
             </div>
@@ -756,10 +775,10 @@ function RecordOverlay({
               </button>
 
               {menuOpen && (
-                <div className="absolute right-12 top-12 z-20 w-40 rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_18px_48px_rgba(15,23,42,0.16)]">
+                <div className="absolute right-12 top-12 z-20 w-40 rounded-2xl border border-neutral-200 bg-white p-2 shadow-[0_18px_48px_rgba(15,23,42,0.16)]">
                   <button
                     type="button"
-                    className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-sm font-black text-slate-800 hover:bg-slate-100"
+                    className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-sm font-black text-neutral-800 hover:bg-neutral-100"
                     onClick={() => {
                       setMenuOpen(false);
                       onRequestEdit();
@@ -789,12 +808,12 @@ function RecordOverlay({
           <div className="p-5 md:p-6">
             {record.thumbnail ? (
               <img
-                className="mx-auto aspect-[9/16] max-h-[620px] w-auto rounded-[1.65rem] bg-slate-100 object-cover"
+                className="mx-auto aspect-[9/16] max-h-[620px] w-auto rounded-[1.65rem] bg-neutral-100 object-cover"
                 src={record.thumbnail}
                 alt="대표 이미지"
               />
             ) : (
-              <div className="grid min-h-60 place-items-center rounded-[1.65rem] bg-gradient-to-br from-slate-50 to-indigo-50 text-sm font-black text-slate-400">
+              <div className="grid min-h-60 place-items-center rounded-[1.65rem] bg-gradient-to-br from-neutral-50 to-orange-50 text-sm font-black text-neutral-400">
                 <div className="grid place-items-center">
                   <Icon name="image" size={30} />
                   <span className="mt-2">대표 이미지 없음</span>
@@ -816,23 +835,23 @@ function RecordOverlay({
             </div>
 
             {record.memo ? (
-              <p className="mt-5 whitespace-pre-wrap text-[15px] font-semibold leading-8 text-slate-700">
+              <p className="mt-5 whitespace-pre-wrap text-[15px] font-semibold leading-8 text-neutral-700">
                 {record.memo}
               </p>
             ) : (
-              <p className="mt-5 text-sm font-black text-slate-400">
+              <p className="mt-5 text-sm font-black text-neutral-400">
                 아직 작성된 기록이 없습니다.
               </p>
             )}
 
             {record.photos?.length > 0 && (
               <section className="mt-8">
-                <h3 className="mb-3 text-base font-black text-slate-950">사진</h3>
+                <h3 className="mb-3 text-base font-black text-neutral-950">사진</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {record.photos.map((photo, index) => (
                     <img
                       key={`${photo}-${index}`}
-                      className="aspect-[9/16] w-full rounded-3xl bg-slate-100 object-cover"
+                      className="aspect-[9/16] w-full rounded-3xl bg-neutral-100 object-cover"
                       src={photo}
                       alt={`첨부 사진 ${index + 1}`}
                     />
@@ -843,7 +862,7 @@ function RecordOverlay({
 
             {youtubeId && (
               <section className="mt-8">
-                <h3 className="mb-3 text-base font-black text-slate-950">YouTube</h3>
+                <h3 className="mb-3 text-base font-black text-neutral-950">YouTube</h3>
                 <div className="aspect-video w-full overflow-hidden rounded-3xl bg-black">
                   <iframe
                     className="h-full w-full border-0"
@@ -863,17 +882,17 @@ function RecordOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 p-0 backdrop-blur-md md:items-center md:p-6"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-neutral-950/45 p-0 backdrop-blur-md md:items-center md:p-6"
       onMouseDown={onClose}
     >
       <article
         className="max-h-[92vh] w-full overflow-auto rounded-t-[2rem] border border-white/60 bg-white shadow-[0_24px_70px_rgba(17,24,39,0.22)] md:max-w-2xl md:rounded-[2rem]"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <header className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/90 p-5 backdrop-blur-xl md:p-6">
+        <header className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-neutral-200 bg-white/90 p-5 backdrop-blur-xl md:p-6">
           <div>
-            <p className="text-sm font-black text-slate-400">{getReadableDate(form.date)}</p>
-            <h2 className="mt-1 text-2xl font-black leading-tight text-slate-950">
+            <p className="text-sm font-black text-neutral-400">{getReadableDate(form.date)}</p>
+            <h2 className="mt-1 text-2xl font-black leading-tight text-neutral-950">
               {record ? "게시물 수정" : "새 게시물 추가"}
             </h2>
           </div>
@@ -885,10 +904,10 @@ function RecordOverlay({
 
         <form className="grid gap-4 p-5 md:p-6" onSubmit={handleSubmit}>
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-black text-slate-700">
+            <label className="grid gap-2 text-sm font-black text-neutral-700">
               날짜
               <input
-                className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-bold text-slate-950 outline-none transition focus:border-slate-950 focus:ring-4 focus:ring-slate-950/5"
+                className="h-12 rounded-2xl border border-neutral-200 bg-white px-4 font-bold text-neutral-950 outline-none transition focus:border-neutral-950 focus:ring-4 focus:ring-neutral-950/5"
                 type="date"
                 name="date"
                 value={form.date}
@@ -896,10 +915,10 @@ function RecordOverlay({
               />
             </label>
 
-            <label className="grid gap-2 text-sm font-black text-slate-700">
+            <label className="grid gap-2 text-sm font-black text-neutral-700">
               카테고리
               <select
-                className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-bold text-slate-950 outline-none transition focus:border-slate-950 focus:ring-4 focus:ring-slate-950/5"
+                className="h-12 rounded-2xl border border-neutral-200 bg-white px-4 font-bold text-neutral-950 outline-none transition focus:border-neutral-950 focus:ring-4 focus:ring-neutral-950/5"
                 name="category"
                 value={form.category}
                 onChange={handleChange}
@@ -913,10 +932,10 @@ function RecordOverlay({
             </label>
           </div>
 
-          <label className="grid gap-2 text-sm font-black text-slate-700">
+          <label className="grid gap-2 text-sm font-black text-neutral-700">
             제목
             <input
-              className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-bold text-slate-950 outline-none transition placeholder:text-slate-300 focus:border-slate-950 focus:ring-4 focus:ring-slate-950/5"
+              className="h-12 rounded-2xl border border-neutral-200 bg-white px-4 font-bold text-neutral-950 outline-none transition placeholder:text-neutral-300 focus:border-neutral-950 focus:ring-4 focus:ring-neutral-950/5"
               type="text"
               name="title"
               value={form.title}
@@ -925,10 +944,10 @@ function RecordOverlay({
             />
           </label>
 
-          <label className="grid gap-2 text-sm font-black text-slate-700">
+          <label className="grid gap-2 text-sm font-black text-neutral-700">
             대표 이미지
             <input
-              className="rounded-2xl border border-slate-200 bg-white p-3 text-sm font-bold text-slate-500 file:mr-3 file:rounded-xl file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-black file:text-white"
+              className="rounded-2xl border border-neutral-200 bg-white p-3 text-sm font-bold text-neutral-500 file:mr-3 file:rounded-xl file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-black file:text-white"
               type="file"
               accept="image/*"
               onChange={handleThumbnailChange}
@@ -938,7 +957,7 @@ function RecordOverlay({
           {form.thumbnail && (
             <div className="grid gap-3">
               <img
-                className="mx-auto aspect-[9/16] max-h-[520px] w-auto rounded-3xl bg-slate-100 object-cover"
+                className="mx-auto aspect-[9/16] max-h-[520px] w-auto rounded-3xl bg-neutral-100 object-cover"
                 src={form.thumbnail}
                 alt="대표 이미지 미리보기"
               />
@@ -946,7 +965,7 @@ function RecordOverlay({
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-200"
+                  className="rounded-2xl bg-neutral-100 px-4 py-2 text-sm font-black text-neutral-700 hover:bg-neutral-200"
                   onClick={() =>
                     setImageEditor({
                       type: "thumbnail",
@@ -973,10 +992,10 @@ function RecordOverlay({
             </div>
           )}
 
-          <label className="grid gap-2 text-sm font-black text-slate-700">
+          <label className="grid gap-2 text-sm font-black text-neutral-700">
             기록
             <textarea
-              className="min-h-44 resize-y rounded-2xl border border-slate-200 bg-white px-4 py-3 font-semibold leading-7 text-slate-950 outline-none transition placeholder:text-slate-300 focus:border-slate-950 focus:ring-4 focus:ring-slate-950/5"
+              className="min-h-44 resize-y rounded-2xl border border-neutral-200 bg-white px-4 py-3 font-semibold leading-7 text-neutral-950 outline-none transition placeholder:text-neutral-300 focus:border-neutral-950 focus:ring-4 focus:ring-neutral-950/5"
               name="memo"
               value={form.memo}
               onChange={handleChange}
@@ -985,10 +1004,10 @@ function RecordOverlay({
             />
           </label>
 
-          <label className="grid gap-2 text-sm font-black text-slate-700">
+          <label className="grid gap-2 text-sm font-black text-neutral-700">
             사진 첨부
             <input
-              className="rounded-2xl border border-slate-200 bg-white p-3 text-sm font-bold text-slate-500 file:mr-3 file:rounded-xl file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-black file:text-white"
+              className="rounded-2xl border border-neutral-200 bg-white p-3 text-sm font-bold text-neutral-500 file:mr-3 file:rounded-xl file:border-0 file:bg-neutral-950 file:px-4 file:py-2 file:text-sm file:font-black file:text-white"
               type="file"
               accept="image/*"
               multiple
@@ -1001,7 +1020,7 @@ function RecordOverlay({
               {form.photos.map((photo, index) => (
                 <div className="relative" key={`${photo}-${index}`}>
                   <img
-                    className="aspect-[9/16] w-full rounded-3xl bg-slate-100 object-cover"
+                    className="aspect-[9/16] w-full rounded-3xl bg-neutral-100 object-cover"
                     src={photo}
                     alt={`첨부 사진 ${index + 1}`}
                   />
@@ -1009,7 +1028,7 @@ function RecordOverlay({
                   <div className="absolute bottom-2 right-2 flex gap-1">
                     <button
                       type="button"
-                      className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-black text-slate-950 backdrop-blur"
+                      className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-black text-neutral-950 backdrop-blur"
                       onClick={() =>
                         setImageEditor({
                           type: "replacePhoto",
@@ -1023,7 +1042,7 @@ function RecordOverlay({
 
                     <button
                       type="button"
-                      className="rounded-full bg-slate-950/85 px-3 py-1.5 text-xs font-black text-white"
+                      className="rounded-full bg-neutral-950/85 px-3 py-1.5 text-xs font-black text-white"
                       onClick={() => removePhoto(index)}
                     >
                       삭제
@@ -1034,10 +1053,10 @@ function RecordOverlay({
             </div>
           )}
 
-          <label className="grid gap-2 text-sm font-black text-slate-700">
+          <label className="grid gap-2 text-sm font-black text-neutral-700">
             YouTube URL 또는 영상 ID
             <input
-              className="h-12 rounded-2xl border border-slate-200 bg-white px-4 font-bold text-slate-950 outline-none transition placeholder:text-slate-300 focus:border-slate-950 focus:ring-4 focus:ring-slate-950/5"
+              className="h-12 rounded-2xl border border-neutral-200 bg-white px-4 font-bold text-neutral-950 outline-none transition placeholder:text-neutral-300 focus:border-neutral-950 focus:ring-4 focus:ring-neutral-950/5"
               type="text"
               name="youtubeUrl"
               value={form.youtubeUrl}
@@ -1058,7 +1077,7 @@ function RecordOverlay({
             </div>
           )}
 
-          <footer className="sticky bottom-[-20px] -mx-5 -mb-5 mt-2 flex gap-3 border-t border-slate-200 bg-white/90 p-5 backdrop-blur-xl md:-mx-6 md:-mb-6 md:px-6">
+          <footer className="sticky bottom-[-20px] -mx-5 -mb-5 mt-2 flex gap-3 border-t border-neutral-200 bg-white/90 p-5 backdrop-blur-xl md:-mx-6 md:-mb-6 md:px-6">
             <button type="button" className={`${secondaryButton} flex-1`} onClick={onClose}>
               취소
             </button>
@@ -1084,22 +1103,22 @@ function RecordOverlay({
 function DayPostsSheet({ date, records, onClose, onOpenRecord, onCreate }) {
   return (
     <div
-      className="fixed inset-0 z-40 flex items-end justify-center bg-slate-950/35 p-0 backdrop-blur-sm"
+      className="fixed inset-0 z-40 flex items-end justify-center bg-neutral-950/35 p-0 backdrop-blur-sm"
       onMouseDown={onClose}
     >
       <section
-        className="w-full max-w-2xl rounded-t-[2rem] bg-white p-5 shadow-[0_-20px_60px_rgba(17,24,39,0.18)] md:mb-6 md:rounded-[2rem]"
+        className="w-full max-w-2xl rounded-t-[2rem] bg-white p-5 shadow-[0_-20px_60px_rgba(10,10,10,0.18)] md:mb-6 md:rounded-[2rem]"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-slate-200 md:hidden" />
+        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-neutral-200 md:hidden" />
 
         <header className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-black text-slate-400">Posts</p>
-            <h2 className="mt-1 text-2xl font-black text-slate-950">
+            <p className="text-xs font-black text-neutral-400">Posts</p>
+            <h2 className="mt-1 text-2xl font-black text-neutral-950">
               {getReadableDate(date)}
             </h2>
-            <p className="mt-1 text-sm font-bold text-slate-500">
+            <p className="mt-1 text-sm font-bold text-neutral-500">
               이 날짜에 등록된 게시물 {records.length}개
             </p>
           </div>
@@ -1114,7 +1133,7 @@ function DayPostsSheet({ date, records, onClose, onOpenRecord, onCreate }) {
             <button
               type="button"
               key={record.id}
-              className="grid w-full grid-cols-[74px_minmax(0,1fr)] items-center gap-3 rounded-3xl border border-slate-200 bg-white p-2.5 text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_10px_26px_rgba(17,24,39,0.08)]"
+              className="grid w-full grid-cols-[74px_minmax(0,1fr)] items-center gap-3 rounded-3xl border border-neutral-200 bg-white p-2.5 text-left transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_10px_26px_rgba(10,10,10,0.08)]"
               onClick={() => onOpenRecord(record.id)}
             >
               {record.thumbnail ? (
@@ -1124,7 +1143,7 @@ function DayPostsSheet({ date, records, onClose, onOpenRecord, onCreate }) {
                   alt={record.title}
                 />
               ) : (
-                <div className="grid aspect-[9/16] h-[96px] w-[54px] place-items-center justify-self-center rounded-2xl bg-slate-100 text-slate-400">
+                <div className="grid aspect-[9/16] h-[96px] w-[54px] place-items-center justify-self-center rounded-2xl bg-neutral-100 text-neutral-400">
                   <Icon name="image" size={18} />
                 </div>
               )}
@@ -1133,10 +1152,10 @@ function DayPostsSheet({ date, records, onClose, onOpenRecord, onCreate }) {
                 <span className={getCategoryPillClass(record.category)}>
                   {getCategoryLabel(record.category)}
                 </span>
-                <strong className="mt-2 block truncate text-base font-black text-slate-950">
+                <strong className="mt-2 block truncate text-base font-black text-neutral-950">
                   {record.title}
                 </strong>
-                <p className="mt-1 line-clamp-2 text-sm font-bold leading-6 text-slate-500">
+                <p className="mt-1 line-clamp-2 text-sm font-bold leading-6 text-neutral-500">
                   {record.memo || "작성된 기록 내용이 없습니다."}
                 </p>
               </div>
@@ -1157,60 +1176,18 @@ function DayPostsSheet({ date, records, onClose, onOpenRecord, onCreate }) {
   );
 }
 
-function FilterChips({ categoryFilter, setCategoryFilter, records }) {
-  return (
-    <div className="mb-5 flex flex-wrap gap-2">
-      <button
-        type="button"
-        className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-sm font-black transition ${
-          categoryFilter === "all"
-            ? "border-slate-950 bg-slate-950 text-white"
-            : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-        }`}
-        onClick={() => setCategoryFilter("all")}
-      >
-        전체 <span className="opacity-70">{records.length}</span>
-      </button>
-
-      {categoryOptions.map((category) => (
-        <button
-          type="button"
-          key={category.value}
-          className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-sm font-black transition ${
-            categoryFilter === category.value
-              ? "border-slate-950 bg-slate-950 text-white"
-              : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-          }`}
-          onClick={() => setCategoryFilter(category.value)}
-        >
-          {category.label}
-          <span className="opacity-70">
-            {records.filter((record) => record.category === category.value).length}
-          </span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function CalendarView({
+function MiniDotCalendar({
   cells,
   recordsByDate,
   selectedDate,
-  setSelectedDate,
   todayKey,
-  currentMonth,
-  records,
-  monthRecordCount,
-  photoCount,
-  onMoveMonth,
-  onToday,
+  onSelectDate,
   onCreate,
   onOpenRecord,
   onOpenDayPosts,
 }) {
-  const handleCellClick = (dateKey, dayRecords) => {
-    setSelectedDate(dateKey);
+  const handleDatePress = (dateKey, dayRecords) => {
+    onSelectDate(dateKey);
 
     if (dayRecords.length === 1) {
       onOpenRecord(dayRecords[0].id);
@@ -1223,67 +1200,89 @@ function CalendarView({
   };
 
   return (
-    <section className={`${glassCard} p-3 sm:p-4 lg:p-6`}>
-      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <p className="text-xs font-black text-slate-400">Calendar</p>
-          <h2 className="mt-1 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-            {getMonthTitle(currentMonth)}
-          </h2>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className={iconButton}
-            onClick={() => onMoveMonth(-1)}
-            aria-label="이전 달"
+    <div className="mt-9">
+      <div className="mb-3 grid grid-cols-7 px-1">
+        {["M", "T", "W", "T", "F", "S", "S"].map((weekday, index) => (
+          <span
+            key={`${weekday}-${index}`}
+            className={`text-center text-[10px] font-black ${
+              index === 1 ? "text-orange-500" : "text-neutral-500"
+            }`}
           >
-            <Icon name="left" size={19} />
-          </button>
-
-          <button
-            type="button"
-            className="h-11 flex-1 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-black text-slate-700 transition hover:bg-slate-50 lg:flex-none"
-            onClick={onToday}
-          >
-            오늘
-          </button>
-
-          <button
-            type="button"
-            className={iconButton}
-            onClick={() => onMoveMonth(1)}
-            aria-label="다음 달"
-          >
-            <Icon name="right" size={19} />
-          </button>
-        </div>
-      </div>
-
-      <div className="mb-5 grid grid-cols-3 gap-2">
-        {[
-          { label: "전체 게시물", value: records.length },
-          { label: "이번 달", value: monthRecordCount },
-          { label: "이미지", value: photoCount },
-        ].map((item) => (
-          <div
-            key={item.label}
-            className="rounded-3xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-3 sm:p-4"
-          >
-            <span className="block text-xs font-black text-slate-400">{item.label}</span>
-            <strong className="mt-2 block text-2xl font-black leading-none text-slate-950 sm:text-3xl">
-              {item.value}
-            </strong>
-          </div>
+            {weekday}
+          </span>
         ))}
       </div>
 
+      <div className="grid grid-cols-7 gap-2">
+        {cells.map((cell) => {
+          const dayRecords = recordsByDate[cell.dateKey] || [];
+          const hasRecord = dayRecords.length > 0;
+          const isToday = todayKey === cell.dateKey;
+          const isSelected = selectedDate === cell.dateKey;
+
+          return (
+            <button
+              type="button"
+              key={cell.dateKey}
+              className={[
+                "relative aspect-square rounded-full transition hover:scale-105",
+                cell.isCurrentMonth ? "" : "opacity-20",
+                isSelected
+                  ? "bg-orange-500"
+                  : isToday
+                    ? "bg-orange-500"
+                    : hasRecord
+                      ? "bg-neutral-950"
+                      : "bg-neutral-200",
+              ].join(" ")}
+              onClick={() => handleDatePress(cell.dateKey, dayRecords)}
+              onDoubleClick={() => onCreate(cell.dateKey)}
+              aria-label={`${cell.dateKey} 선택`}
+            >
+              {dayRecords.length > 1 && (
+                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-white px-1 text-[9px] font-black text-neutral-950 shadow">
+                  {dayRecords.length}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ExpandedMonthCalendar({
+  cells,
+  recordsByDate,
+  selectedDate,
+  todayKey,
+  onSelectDate,
+  onCreate,
+  onOpenRecord,
+  onOpenDayPosts,
+}) {
+  const handleCellClick = (dateKey, dayRecords) => {
+    onSelectDate(dateKey);
+
+    if (dayRecords.length === 1) {
+      onOpenRecord(dayRecords[0].id);
+      return;
+    }
+
+    if (dayRecords.length > 1) {
+      onOpenDayPosts(dateKey, dayRecords);
+    }
+  };
+
+  return (
+    <div>
       <div className="mb-2 grid grid-cols-7">
         {["일", "월", "화", "수", "목", "금", "토"].map((weekday) => (
           <span
             key={weekday}
-            className="py-2 text-center text-xs font-black text-slate-400"
+            className="py-2 text-center text-xs font-black text-neutral-400"
           >
             {weekday}
           </span>
@@ -1303,18 +1302,18 @@ function CalendarView({
           return (
             <div
               key={cell.dateKey}
-              className={`group relative min-w-0 ${cell.isCurrentMonth ? "" : "opacity-35"}`}
+              className={`group relative min-w-0 ${cell.isCurrentMonth ? "" : "opacity-30"}`}
             >
               <div
                 role="button"
                 tabIndex={0}
                 className={[
                   "relative aspect-[9/16] w-full rounded-2xl border transition",
-                  "hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(17,24,39,0.12)]",
-                  hasRecords ? "bg-slate-950" : "bg-white/80",
+                  "hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(10,10,10,0.12)]",
+                  hasRecords ? "bg-neutral-950" : "bg-white/70",
                   isSelected
-                    ? "border-slate-950 shadow-[inset_0_0_0_1px_#111827]"
-                    : "border-slate-200 hover:border-slate-300",
+                    ? "border-neutral-950 shadow-[inset_0_0_0_1px_#111111]"
+                    : "border-neutral-200 hover:border-neutral-300",
                 ].join(" ")}
                 onClick={() => handleCellClick(cell.dateKey, dayRecords)}
                 onKeyDown={(event) => {
@@ -1331,7 +1330,7 @@ function CalendarView({
                       return (
                         <div
                           key={record.id}
-                          className="absolute inset-0 overflow-hidden rounded-2xl border border-white/40 bg-slate-100 shadow-[0_10px_24px_rgba(15,23,42,0.18)]"
+                          className="absolute inset-0 overflow-hidden rounded-2xl border border-white/40 bg-neutral-100 shadow-[0_10px_24px_rgba(10,10,10,0.18)]"
                           style={{
                             zIndex: 30 - index,
                             transform: `translate(${index * 5}px, ${index * 5}px) scale(${1 - index * 0.045})`,
@@ -1344,7 +1343,7 @@ function CalendarView({
                               alt={record.title}
                             />
                           ) : (
-                            <div className="grid h-full w-full place-items-center bg-gradient-to-br from-slate-100 to-indigo-50 p-2 text-center text-[10px] font-black text-slate-500">
+                            <div className="grid h-full w-full place-items-center bg-gradient-to-br from-neutral-100 to-orange-50 p-2 text-center text-[10px] font-black text-neutral-500">
                               {record.title}
                             </div>
                           )}
@@ -1366,7 +1365,7 @@ function CalendarView({
                     })}
                   </div>
                 ) : (
-                  <div className="absolute inset-0 rounded-2xl bg-white/80" />
+                  <div className="absolute inset-0 rounded-2xl bg-white/70" />
                 )}
 
                 <div className="absolute left-1.5 top-1.5 z-40 flex items-center gap-1 sm:left-2 sm:top-2">
@@ -1374,44 +1373,25 @@ function CalendarView({
                     className={[
                       "grid h-6 min-w-6 place-items-center rounded-full px-1 text-xs font-black",
                       isToday
-                        ? "bg-slate-950 text-white"
+                        ? "bg-orange-500 text-white"
                         : hasRecords
-                          ? "bg-white/90 text-slate-950 shadow-sm backdrop-blur"
-                          : "bg-slate-100 text-slate-700",
+                          ? "bg-white/90 text-neutral-950 shadow-sm backdrop-blur"
+                          : "bg-neutral-100 text-neutral-700",
                     ].join(" ")}
                   >
                     {cell.day}
                   </span>
-
-                  {isToday && (
-                    <em
-                      className={[
-                        "hidden rounded-full px-2 py-1 text-[10px] font-black not-italic sm:block",
-                        hasRecords
-                          ? "bg-white/90 text-indigo-600 backdrop-blur"
-                          : "bg-indigo-50 text-indigo-600",
-                      ].join(" ")}
-                    >
-                      Today
-                    </em>
-                  )}
                 </div>
 
                 {dayRecords.length > 1 && (
-                  <div className="absolute right-1.5 top-1.5 z-40 rounded-full bg-white/90 px-2 py-1 text-[10px] font-black text-slate-950 shadow-sm backdrop-blur sm:right-2 sm:top-2">
+                  <div className="absolute right-1.5 top-1.5 z-40 rounded-full bg-white/90 px-2 py-1 text-[10px] font-black text-neutral-950 shadow-sm backdrop-blur sm:right-2 sm:top-2">
                     {dayRecords.length}개
                   </div>
                 )}
 
                 {extraCount > 0 && (
-                  <div className="absolute bottom-2 right-2 z-40 rounded-full bg-slate-950/90 px-2 py-1 text-[10px] font-black text-white">
+                  <div className="absolute bottom-2 right-2 z-40 rounded-full bg-neutral-950/90 px-2 py-1 text-[10px] font-black text-white">
                     +{extraCount}
-                  </div>
-                )}
-
-                {!hasRecords && (
-                  <div className="absolute inset-x-0 bottom-3 hidden text-center text-[11px] font-black text-slate-300 lg:block">
-                    No log
                   </div>
                 )}
               </div>
@@ -1424,7 +1404,7 @@ function CalendarView({
                     "lg:h-7 lg:w-7 lg:translate-y-1 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100",
                     hasRecords
                       ? "bg-white/25 backdrop-blur hover:bg-white/35"
-                      : "bg-slate-950/90 hover:bg-slate-800",
+                      : "bg-neutral-950/90 hover:bg-neutral-800",
                   ].join(" ")}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -1439,7 +1419,300 @@ function CalendarView({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function HomeCalendarView({
+  cells,
+  recordsByDate,
+  selectedDate,
+  setSelectedDate,
+  todayKey,
+  currentMonth,
+  records,
+  monthRecordCount,
+  photoCount,
+  onMoveMonth,
+  onToday,
+  onCreate,
+  onOpenRecord,
+  onOpenDayPosts,
+}) {
+  const [homeMode, setHomeMode] = useState("compact");
+  const [dragOffset, setDragOffset] = useState(0);
+  const dragStartYRef = useRef(null);
+
+  const selectedDateObject = getDateFromKey(selectedDate);
+  const selectedDayRecords = recordsByDate[selectedDate] || [];
+  const selectedDayNumber = selectedDateObject.getDate();
+
+  const compactHeroProgress =
+    homeMode === "expanded" ? 1 : Math.min(1, Math.max(0, Math.abs(dragOffset) / 120));
+
+  const handlePointerDown = (event) => {
+    dragStartYRef.current = event.clientY;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handlePointerMove = (event) => {
+    if (dragStartYRef.current === null) return;
+
+    const delta = event.clientY - dragStartYRef.current;
+    setDragOffset(Math.max(-140, Math.min(140, delta)));
+  };
+
+  const handlePointerUp = () => {
+    if (dragStartYRef.current === null) return;
+
+    if (dragOffset < -48) {
+      setHomeMode("expanded");
+    }
+
+    if (dragOffset > 48) {
+      setHomeMode("compact");
+    }
+
+    dragStartYRef.current = null;
+    setDragOffset(0);
+  };
+
+  return (
+    <section
+      className="mx-auto w-full max-w-[1040px] select-none"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+    >
+      <div
+        className={[
+          "relative overflow-hidden rounded-[2.3rem] border border-white/70 bg-[#e7e5df]/90 shadow-[0_20px_70px_rgba(10,10,10,0.12)] backdrop-blur-xl transition-all duration-500 ease-out",
+          homeMode === "expanded" ? "min-h-[calc(100vh-126px)] p-4 sm:p-6" : "min-h-[calc(100vh-126px)] p-5 sm:p-8",
+        ].join(" ")}
+      >
+        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-orange-400/10 blur-3xl" />
+        <div className="absolute -bottom-32 -left-24 h-72 w-72 rounded-full bg-neutral-950/5 blur-3xl" />
+
+        <header className="relative z-10 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+              Daily Fan Log
+            </p>
+            <h1 className="mt-1 text-xl font-black tracking-tight text-neutral-950">
+              라이브러리
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button type="button" className={iconButton} onClick={onToday} aria-label="오늘">
+              <Icon name="star" size={18} />
+            </button>
+            <button
+              type="button"
+              className="grid h-11 w-11 place-items-center rounded-2xl bg-neutral-950 text-white shadow-[0_12px_24px_rgba(10,10,10,0.18)]"
+              onClick={() => onCreate(selectedDate)}
+              aria-label="새 게시물"
+            >
+              <Icon name="plus" size={20} />
+            </button>
+          </div>
+        </header>
+
+        <div
+          className="relative z-10 transition-all duration-500 ease-out"
+          style={{
+            opacity: 1 - compactHeroProgress,
+            transform: `translateY(${-compactHeroProgress * 42}px)`,
+            maxHeight: homeMode === "expanded" ? "0px" : "430px",
+            pointerEvents: homeMode === "expanded" ? "none" : "auto",
+          }}
+        >
+          <div className="mt-14 sm:mt-20">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <strong className="block text-[6.5rem] font-black leading-[0.78] tracking-[-0.08em] text-neutral-950 sm:text-[8.5rem] md:text-[10rem]">
+                  {selectedDayNumber}
+                </strong>
+
+                <div className="mt-8 flex items-end gap-3">
+                  <div>
+                    <p className="text-2xl font-black leading-none tracking-tight text-neutral-950 sm:text-3xl">
+                      {getEnglishMonth(selectedDateObject)}
+                    </p>
+                    <p className="mt-1 text-2xl font-medium leading-none tracking-tight text-neutral-500 sm:text-3xl">
+                      {selectedDateObject.getFullYear()}
+                    </p>
+                  </div>
+
+                  <span className="pb-0.5 text-2xl font-black text-neutral-500 sm:text-3xl">
+                    {getEnglishWeekday(selectedDateObject)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="hidden text-right sm:block">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+                  This month
+                </p>
+                <p className="mt-2 text-4xl font-black text-neutral-950">{monthRecordCount}</p>
+                <p className="text-sm font-bold text-neutral-500">게시물</p>
+              </div>
+            </div>
+
+            <MiniDotCalendar
+              cells={cells}
+              recordsByDate={recordsByDate}
+              selectedDate={selectedDate}
+              todayKey={todayKey}
+              onSelectDate={setSelectedDate}
+              onCreate={onCreate}
+              onOpenRecord={onOpenRecord}
+              onOpenDayPosts={onOpenDayPosts}
+            />
+          </div>
+        </div>
+
+        <div
+          className={[
+            "relative z-10 transition-all duration-500 ease-out",
+            homeMode === "expanded" ? "mt-7 opacity-100" : "mt-7 opacity-100",
+          ].join(" ")}
+        >
+          <div
+            className={[
+              "mb-4 flex items-end justify-between gap-4 transition-all duration-500",
+              homeMode === "expanded" ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
+            ].join(" ")}
+          >
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-neutral-500">
+                Calendar
+              </p>
+              <h2 className="mt-1 text-3xl font-black tracking-tight text-neutral-950 sm:text-4xl">
+                {getMonthTitle(currentMonth)}
+              </h2>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className={iconButton}
+                onClick={() => onMoveMonth(-1)}
+                aria-label="이전 달"
+              >
+                <Icon name="left" size={19} />
+              </button>
+
+              <button
+                type="button"
+                className="hidden h-11 rounded-2xl border border-neutral-200 bg-white px-5 text-sm font-black text-neutral-700 transition hover:bg-neutral-50 sm:block"
+                onClick={onToday}
+              >
+                오늘
+              </button>
+
+              <button
+                type="button"
+                className={iconButton}
+                onClick={() => onMoveMonth(1)}
+                aria-label="다음 달"
+              >
+                <Icon name="right" size={19} />
+              </button>
+            </div>
+          </div>
+
+          {homeMode === "expanded" && (
+            <div className="mb-5 grid grid-cols-3 gap-2">
+              {[
+                { label: "전체 게시물", value: records.length },
+                { label: "이번 달", value: monthRecordCount },
+                { label: "이미지", value: photoCount },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-3xl border border-white/70 bg-white/70 p-3 backdrop-blur sm:p-4"
+                >
+                  <span className="block text-xs font-black text-neutral-400">{item.label}</span>
+                  <strong className="mt-2 block text-2xl font-black leading-none text-neutral-950 sm:text-3xl">
+                    {item.value}
+                  </strong>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div
+            className={[
+              "transition-all duration-500 ease-out",
+              homeMode === "expanded"
+                ? "pointer-events-auto translate-y-0 opacity-100"
+                : "pointer-events-none absolute inset-x-5 translate-y-10 opacity-0",
+            ].join(" ")}
+          >
+            <ExpandedMonthCalendar
+              cells={cells}
+              recordsByDate={recordsByDate}
+              selectedDate={selectedDate}
+              todayKey={todayKey}
+              onSelectDate={setSelectedDate}
+              onCreate={onCreate}
+              onOpenRecord={onOpenRecord}
+              onOpenDayPosts={onOpenDayPosts}
+            />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="absolute bottom-4 left-1/2 z-20 grid -translate-x-1/2 place-items-center gap-1 rounded-full bg-white/80 px-4 py-2 text-xs font-black text-neutral-500 shadow-[0_10px_30px_rgba(10,10,10,0.08)] backdrop-blur transition hover:bg-white"
+          onClick={() => setHomeMode((prev) => (prev === "compact" ? "expanded" : "compact"))}
+        >
+          <span className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
+          <span className="flex items-center gap-1">
+            {homeMode === "compact" ? "위로 밀어 캘린더 보기" : "아래로 내려 접기"}
+            <Icon name={homeMode === "compact" ? "chevronUp" : "chevronDown"} size={14} />
+          </span>
+        </button>
+      </div>
     </section>
+  );
+}
+
+function FilterChips({ categoryFilter, setCategoryFilter, records }) {
+  return (
+    <div className="mb-5 flex flex-wrap gap-2">
+      <button
+        type="button"
+        className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-sm font-black transition ${
+          categoryFilter === "all"
+            ? "border-neutral-950 bg-neutral-950 text-white"
+            : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50"
+        }`}
+        onClick={() => setCategoryFilter("all")}
+      >
+        전체 <span className="opacity-70">{records.length}</span>
+      </button>
+
+      {categoryOptions.map((category) => (
+        <button
+          type="button"
+          key={category.value}
+          className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-sm font-black transition ${
+            categoryFilter === category.value
+              ? "border-neutral-950 bg-neutral-950 text-white"
+              : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50"
+          }`}
+          onClick={() => setCategoryFilter(category.value)}
+        >
+          {category.label}
+          <span className="opacity-70">
+            {records.filter((record) => record.category === category.value).length}
+          </span>
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -1457,11 +1730,11 @@ function CollectionView({
     <section className={`${glassCard} p-4 lg:p-6`}>
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-xs font-black text-slate-400">Collection</p>
-          <h2 className="mt-1 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+          <p className="text-xs font-black text-neutral-400">Collection</p>
+          <h2 className="mt-1 text-3xl font-black tracking-tight text-neutral-950 sm:text-4xl">
             컬렉션
           </h2>
-          <p className="mt-2 text-sm font-bold leading-6 text-slate-500">
+          <p className="mt-2 text-sm font-bold leading-6 text-neutral-500">
             날짜별 게시물을 카드 형태로 모아볼 수 있습니다.
           </p>
         </div>
@@ -1484,7 +1757,7 @@ function CollectionView({
             <button
               type="button"
               key={record.id}
-              className="grid min-h-44 w-full gap-4 rounded-[1.75rem] border border-slate-200 bg-white p-3 text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_16px_42px_rgba(17,24,39,0.1)] sm:grid-cols-[120px_minmax(0,1fr)]"
+              className="grid min-h-44 w-full gap-4 rounded-[1.75rem] border border-neutral-200 bg-white p-3 text-left transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_16px_42px_rgba(10,10,10,0.1)] sm:grid-cols-[120px_minmax(0,1fr)]"
               onClick={() => onOpenRecord(record.id)}
             >
               {record.thumbnail ? (
@@ -1494,7 +1767,7 @@ function CollectionView({
                   alt={record.title}
                 />
               ) : (
-                <div className="grid aspect-[9/16] h-60 w-full place-items-center rounded-3xl bg-slate-100 text-slate-400 sm:h-full">
+                <div className="grid aspect-[9/16] h-60 w-full place-items-center rounded-3xl bg-neutral-100 text-neutral-400 sm:h-full">
                   <Icon name="image" size={26} />
                 </div>
               )}
@@ -1504,19 +1777,19 @@ function CollectionView({
                   <span className={getCategoryPillClass(record.category)}>
                     {getCategoryLabel(record.category)}
                   </span>
-                  <em className="text-xs font-black not-italic text-slate-400">
+                  <em className="text-xs font-black not-italic text-neutral-400">
                     {getReadableDate(record.date)}
                   </em>
                 </div>
 
-                <h3 className="truncate text-lg font-black text-slate-950">{record.title}</h3>
+                <h3 className="truncate text-lg font-black text-neutral-950">{record.title}</h3>
 
-                <p className="mt-2 line-clamp-2 min-h-11 text-sm font-bold leading-6 text-slate-500">
+                <p className="mt-2 line-clamp-2 min-h-11 text-sm font-bold leading-6 text-neutral-500">
                   {record.memo || "작성된 기록 내용이 없습니다."}
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-slate-100 px-3 text-xs font-black text-slate-500">
+                  <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-neutral-100 px-3 text-xs font-black text-neutral-500">
                     <Icon name="image" size={15} />
                     이미지 {(record.thumbnail ? 1 : 0) + record.photos.length}
                   </span>
@@ -1585,11 +1858,11 @@ function GalleryView({
     <section className={`${glassCard} p-4 lg:p-6`}>
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-xs font-black text-slate-400">Gallery</p>
-          <h2 className="mt-1 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+          <p className="text-xs font-black text-neutral-400">Gallery</p>
+          <h2 className="mt-1 text-3xl font-black tracking-tight text-neutral-950 sm:text-4xl">
             갤러리
           </h2>
-          <p className="mt-2 text-sm font-bold leading-6 text-slate-500">
+          <p className="mt-2 text-sm font-bold leading-6 text-neutral-500">
             대표 이미지와 첨부 사진을 이미지 중심으로 확인합니다.
           </p>
         </div>
@@ -1612,7 +1885,7 @@ function GalleryView({
             <button
               type="button"
               key={item.id}
-              className={`group relative overflow-hidden rounded-[1.75rem] bg-slate-100 text-left text-white ${
+              className={`group relative overflow-hidden rounded-[1.75rem] bg-neutral-100 text-left text-white ${
                 index % 5 === 0 ? "sm:col-span-2 sm:row-span-2" : ""
               }`}
               onClick={() => onOpenRecord(item.recordId)}
@@ -1646,6 +1919,47 @@ function GalleryView({
   );
 }
 
+function AppHeader({ query, setQuery, onCreate }) {
+  return (
+    <header className={`${glassCard} mb-5 flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between`}>
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-neutral-950 text-white shadow-[0_12px_28px_rgba(10,10,10,0.22)]">
+          <Icon name="star" size={18} />
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-xs font-black text-neutral-400">Daily Fan Log</p>
+          <h1 className="mt-0.5 text-2xl font-black leading-tight text-neutral-950">
+            라이브러리
+          </h1>
+        </div>
+      </div>
+
+      <div className="flex flex-1 items-center gap-3 lg:justify-end">
+        <label className="flex h-12 w-full max-w-md items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 text-neutral-400">
+          <Icon name="search" size={18} />
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="게시물 검색"
+            className="w-full bg-transparent text-sm font-bold text-neutral-950 outline-none placeholder:text-neutral-300"
+          />
+        </label>
+
+        <button
+          type="button"
+          className={`${primaryButton} hidden lg:inline-flex`}
+          onClick={onCreate}
+        >
+          <Icon name="plus" size={18} />
+          새 게시물
+        </button>
+      </div>
+    </header>
+  );
+}
+
 export default function App() {
   const todayKey = toDateKey(new Date());
 
@@ -1662,13 +1976,29 @@ export default function App() {
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
 
-    if (!saved) return;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setRecords(Array.isArray(parsed) ? parsed : []);
+        return;
+      } catch {
+        setRecords([]);
+        return;
+      }
+    }
 
-    try {
-      const parsed = JSON.parse(saved);
-      setRecords(Array.isArray(parsed) ? parsed : []);
-    } catch {
-      setRecords([]);
+    for (const legacyKey of LEGACY_STORAGE_KEYS) {
+      const legacySaved = localStorage.getItem(legacyKey);
+
+      if (!legacySaved) continue;
+
+      try {
+        const parsed = JSON.parse(legacySaved);
+        setRecords(Array.isArray(parsed) ? parsed : []);
+        return;
+      } catch {
+        setRecords([]);
+      }
     }
   }, []);
 
@@ -1702,19 +2032,13 @@ export default function App() {
       }, {});
   }, [filteredRecords]);
 
-  const selectedDayRecords = useMemo(() => {
-    return records
-      .filter((record) => record.date === selectedDate)
-      .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
-  }, [records, selectedDate]);
-
   const selectedRecord = useMemo(() => {
     return records.find((record) => record.id === selectedRecordId) || null;
   }, [records, selectedRecordId]);
 
   const monthRecordCount = useMemo(() => {
     return records.filter((record) => {
-      const recordDate = new Date(`${record.date}T00:00:00`);
+      const recordDate = getDateFromKey(record.date);
 
       return (
         recordDate.getFullYear() === currentMonth.getFullYear() &&
@@ -1777,6 +2101,8 @@ export default function App() {
       return [...prev, nextRecord];
     });
 
+    const nextDate = getDateFromKey(nextRecord.date);
+    setCurrentMonth(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
     setSelectedDate(nextRecord.date);
     setSelectedRecordId(nextRecord.id);
     setOverlayMode("view");
@@ -1809,262 +2135,153 @@ export default function App() {
   return (
     <main className="min-h-screen px-3 py-4 pb-28 sm:px-5 lg:px-7 lg:py-7 lg:pb-7">
       <div className="mx-auto w-full max-w-[1440px]">
-        <header className={`${glassCard} mb-5 flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between`}>
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white shadow-[0_12px_28px_rgba(17,24,39,0.22)]">
-              <Icon name="star" size={18} />
-            </div>
+        {activeView !== "calendar" && (
+          <AppHeader
+            query={query}
+            setQuery={setQuery}
+            onCreate={() => openCreateOverlay(todayKey)}
+          />
+        )}
 
-            <div className="min-w-0">
-              <p className="text-xs font-black text-slate-400">Daily Fan Log</p>
-              <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-950">
-                라이브러리
-              </h1>
-            </div>
-          </div>
-
-          <div className="flex flex-1 items-center gap-3 lg:justify-end">
-            <label className="flex h-12 w-full max-w-md items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 text-slate-400">
-              <Icon name="search" size={18} />
-              <input
-                type="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="게시물 검색"
-                className="w-full bg-transparent text-sm font-bold text-slate-950 outline-none placeholder:text-slate-300"
-              />
-            </label>
-
-            <button
-              type="button"
-              className={`${primaryButton} hidden lg:inline-flex`}
-              onClick={() => openCreateOverlay(todayKey)}
-            >
-              <Icon name="plus" size={18} />
-              새 게시물
-            </button>
-          </div>
-        </header>
-
-        <div
-          className={`grid items-start gap-5 ${
-            activeView === "calendar"
-              ? "lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_330px]"
-              : "lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_280px]"
-          }`}
-        >
-          <aside className="hidden gap-4 lg:grid">
-            <section className={`${glassCard} flex items-center gap-3 p-4`}>
-              <div className="grid h-[52px] w-[52px] place-items-center rounded-3xl bg-gradient-to-br from-slate-950 to-indigo-600 text-2xl font-black text-white">
-                F
-              </div>
-              <div>
-                <strong className="block text-base font-black text-slate-950">My Space</strong>
-                <span className="mt-1 block text-sm font-bold text-slate-400">
-                  개인 팬활동 기록장
-                </span>
-              </div>
-            </section>
-
-            <section className={`${glassCard} p-4`}>
-              <div className="text-xs font-black text-slate-400">메뉴</div>
-              <nav className="mt-3 grid gap-2">
-                {viewOptions.map((view) => (
-                  <button
-                    type="button"
-                    key={view.value}
-                    className={`flex min-h-11 items-center gap-3 rounded-2xl px-3 text-left text-sm font-black transition ${
-                      activeView === view.value
-                        ? "bg-slate-950 text-white"
-                        : "text-slate-500 hover:bg-slate-100"
-                    }`}
-                    onClick={() => setActiveView(view.value)}
-                  >
-                    <Icon name={view.icon} size={18} />
-                    {view.label}
-                  </button>
-                ))}
-              </nav>
-            </section>
-
-            <section className={`${glassCard} p-4`}>
-              <div className="text-xs font-black text-slate-400">카테고리</div>
-              <div className="mt-3 grid gap-2">
-                <button
-                  type="button"
-                  className={`flex min-h-11 items-center justify-between rounded-2xl px-3 text-sm font-black transition ${
-                    categoryFilter === "all"
-                      ? "bg-slate-950 text-white"
-                      : "text-slate-500 hover:bg-slate-100"
-                  }`}
-                  onClick={() => setCategoryFilter("all")}
-                >
-                  전체
-                  <span
-                    className={`grid h-6 min-w-7 place-items-center rounded-full px-2 text-xs ${
-                      categoryFilter === "all" ? "bg-white/15 text-white" : "bg-slate-100 text-slate-400"
-                    }`}
-                  >
-                    {records.length}
+        {activeView === "calendar" ? (
+          <HomeCalendarView
+            cells={cells}
+            recordsByDate={recordsByDate}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            todayKey={todayKey}
+            currentMonth={currentMonth}
+            records={records}
+            monthRecordCount={monthRecordCount}
+            photoCount={photoCount}
+            onMoveMonth={moveMonth}
+            onToday={goToday}
+            onCreate={openCreateOverlay}
+            onOpenRecord={openViewOverlay}
+            onOpenDayPosts={openDayPosts}
+          />
+        ) : (
+          <div className="grid items-start gap-5 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_280px]">
+            <aside className="hidden gap-4 lg:grid">
+              <section className={`${glassCard} flex items-center gap-3 p-4`}>
+                <div className="grid h-[52px] w-[52px] place-items-center rounded-3xl bg-gradient-to-br from-neutral-950 to-orange-500 text-2xl font-black text-white">
+                  F
+                </div>
+                <div>
+                  <strong className="block text-base font-black text-neutral-950">My Space</strong>
+                  <span className="mt-1 block text-sm font-bold text-neutral-400">
+                    개인 팬활동 기록장
                   </span>
-                </button>
+                </div>
+              </section>
 
-                {categoryOptions.map((category) => (
+              <section className={`${glassCard} p-4`}>
+                <div className="text-xs font-black text-neutral-400">메뉴</div>
+                <nav className="mt-3 grid gap-2">
+                  {viewOptions.map((view) => (
+                    <button
+                      type="button"
+                      key={view.value}
+                      className={`flex min-h-11 items-center gap-3 rounded-2xl px-3 text-left text-sm font-black transition ${
+                        activeView === view.value
+                          ? "bg-neutral-950 text-white"
+                          : "text-neutral-500 hover:bg-neutral-100"
+                      }`}
+                      onClick={() => setActiveView(view.value)}
+                    >
+                      <Icon name={view.icon} size={18} />
+                      {view.label}
+                    </button>
+                  ))}
+                </nav>
+              </section>
+
+              <section className={`${glassCard} p-4`}>
+                <div className="text-xs font-black text-neutral-400">카테고리</div>
+                <div className="mt-3 grid gap-2">
                   <button
                     type="button"
-                    key={category.value}
                     className={`flex min-h-11 items-center justify-between rounded-2xl px-3 text-sm font-black transition ${
-                      categoryFilter === category.value
-                        ? "bg-slate-950 text-white"
-                        : "text-slate-500 hover:bg-slate-100"
+                      categoryFilter === "all"
+                        ? "bg-neutral-950 text-white"
+                        : "text-neutral-500 hover:bg-neutral-100"
                     }`}
-                    onClick={() => setCategoryFilter(category.value)}
+                    onClick={() => setCategoryFilter("all")}
                   >
-                    {category.label}
+                    전체
                     <span
                       className={`grid h-6 min-w-7 place-items-center rounded-full px-2 text-xs ${
-                        categoryFilter === category.value
-                          ? "bg-white/15 text-white"
-                          : "bg-slate-100 text-slate-400"
+                        categoryFilter === "all" ? "bg-white/15 text-white" : "bg-neutral-100 text-neutral-400"
                       }`}
                     >
-                      {records.filter((record) => record.category === category.value).length}
+                      {records.length}
                     </span>
                   </button>
-                ))}
-              </div>
-            </section>
-          </aside>
 
-          <div className="min-w-0">
-            {activeView === "calendar" && (
-              <CalendarView
-                cells={cells}
-                recordsByDate={recordsByDate}
-                selectedDate={selectedDate}
-                setSelectedDate={setSelectedDate}
-                todayKey={todayKey}
-                currentMonth={currentMonth}
-                records={records}
-                monthRecordCount={monthRecordCount}
-                photoCount={photoCount}
-                onMoveMonth={moveMonth}
-                onToday={goToday}
-                onCreate={openCreateOverlay}
-                onOpenRecord={openViewOverlay}
-                onOpenDayPosts={openDayPosts}
-              />
-            )}
-
-            {activeView === "collection" && (
-              <CollectionView
-                records={records}
-                filteredRecords={filteredRecords}
-                categoryFilter={categoryFilter}
-                setCategoryFilter={setCategoryFilter}
-                onOpenRecord={openViewOverlay}
-                onCreate={() => openCreateOverlay(todayKey)}
-              />
-            )}
-
-            {activeView === "gallery" && (
-              <GalleryView
-                records={records}
-                filteredRecords={filteredRecords}
-                categoryFilter={categoryFilter}
-                setCategoryFilter={setCategoryFilter}
-                onOpenRecord={openViewOverlay}
-                onCreate={() => openCreateOverlay(todayKey)}
-              />
-            )}
-          </div>
-
-          <aside className="grid gap-4 xl:block xl:space-y-4">
-            {activeView === "calendar" ? (
-              <section className={`${glassCard} p-4`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-black text-slate-400">Selected Day</p>
-                    <h2 className="mt-1 text-xl font-black leading-tight text-slate-950">
-                      {getReadableDate(selectedDate)}
-                    </h2>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white"
-                    onClick={() => openCreateOverlay(selectedDate)}
-                  >
-                    <Icon name="plus" />
-                  </button>
+                  {categoryOptions.map((category) => (
+                    <button
+                      type="button"
+                      key={category.value}
+                      className={`flex min-h-11 items-center justify-between rounded-2xl px-3 text-sm font-black transition ${
+                        categoryFilter === category.value
+                          ? "bg-neutral-950 text-white"
+                          : "text-neutral-500 hover:bg-neutral-100"
+                      }`}
+                      onClick={() => setCategoryFilter(category.value)}
+                    >
+                      {category.label}
+                      <span
+                        className={`grid h-6 min-w-7 place-items-center rounded-full px-2 text-xs ${
+                          categoryFilter === category.value
+                            ? "bg-white/15 text-white"
+                            : "bg-neutral-100 text-neutral-400"
+                        }`}
+                      >
+                        {records.filter((record) => record.category === category.value).length}
+                      </span>
+                    </button>
+                  ))}
                 </div>
-
-                {selectedDayRecords.length > 0 ? (
-                  <div className="mt-4 grid gap-3">
-                    {selectedDayRecords.map((record) => (
-                      <button
-                        type="button"
-                        key={record.id}
-                        className="grid w-full grid-cols-[62px_minmax(0,1fr)] items-center gap-3 rounded-3xl border border-slate-200 bg-white p-2.5 text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_10px_26px_rgba(17,24,39,0.08)]"
-                        onClick={() => openViewOverlay(record.id)}
-                      >
-                        {record.thumbnail ? (
-                          <img
-                            className="aspect-[9/16] h-[76px] w-[42px] justify-self-center rounded-2xl object-cover"
-                            src={record.thumbnail}
-                            alt={record.title}
-                          />
-                        ) : (
-                          <div className="grid aspect-[9/16] h-[76px] w-[42px] place-items-center justify-self-center rounded-2xl bg-slate-100 text-slate-400">
-                            <Icon name="image" size={18} />
-                          </div>
-                        )}
-
-                        <div className="min-w-0">
-                          <strong className="block truncate text-sm font-black text-slate-950">
-                            {record.title}
-                          </strong>
-                          <span className="mt-1 block text-xs font-black text-slate-400">
-                            {getCategoryLabel(record.category)}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid min-h-64 place-items-center text-center text-slate-400">
-                    <div>
-                      <Icon name="calendar" size={30} />
-                      <strong className="mt-3 block text-lg font-black text-slate-950">
-                        게시물이 없습니다
-                      </strong>
-                      <p className="mt-2 text-sm font-bold leading-6 text-slate-500">
-                        이 날짜에 감상이나 사진을 남겨보세요.
-                      </p>
-                      <button
-                        type="button"
-                        className={`${primaryButton} mt-5`}
-                        onClick={() => openCreateOverlay(selectedDate)}
-                      >
-                        게시물 추가
-                      </button>
-                    </div>
-                  </div>
-                )}
               </section>
-            ) : (
+            </aside>
+
+            <div className="min-w-0">
+              {activeView === "collection" && (
+                <CollectionView
+                  records={records}
+                  filteredRecords={filteredRecords}
+                  categoryFilter={categoryFilter}
+                  setCategoryFilter={setCategoryFilter}
+                  onOpenRecord={openViewOverlay}
+                  onCreate={() => openCreateOverlay(todayKey)}
+                />
+              )}
+
+              {activeView === "gallery" && (
+                <GalleryView
+                  records={records}
+                  filteredRecords={filteredRecords}
+                  categoryFilter={categoryFilter}
+                  setCategoryFilter={setCategoryFilter}
+                  onOpenRecord={openViewOverlay}
+                  onCreate={() => openCreateOverlay(todayKey)}
+                />
+              )}
+            </div>
+
+            <aside className="grid gap-4 xl:block xl:space-y-4">
               <section className={`${glassCard} p-4`}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-black text-slate-400">Overview</p>
-                    <h2 className="mt-1 text-xl font-black leading-tight text-slate-950">
+                    <p className="text-xs font-black text-neutral-400">Overview</p>
+                    <h2 className="mt-1 text-xl font-black leading-tight text-neutral-950">
                       내 기록 요약
                     </h2>
                   </div>
 
                   <button
                     type="button"
-                    className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-950 text-white"
+                    className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-neutral-950 text-white"
                     onClick={() => openCreateOverlay(todayKey)}
                   >
                     <Icon name="plus" />
@@ -2079,36 +2296,36 @@ export default function App() {
                   ].map((item) => (
                     <div
                       key={item.label}
-                      className="flex min-h-14 items-center justify-between rounded-2xl border border-slate-200 bg-white px-4"
+                      className="flex min-h-14 items-center justify-between rounded-2xl border border-neutral-200 bg-white px-4"
                     >
-                      <span className="text-sm font-black text-slate-400">{item.label}</span>
-                      <strong className="text-2xl font-black text-slate-950">{item.value}</strong>
+                      <span className="text-sm font-black text-neutral-400">{item.label}</span>
+                      <strong className="text-2xl font-black text-neutral-950">{item.value}</strong>
                     </div>
                   ))}
                 </div>
               </section>
-            )}
 
-            <section className="rounded-[2rem] bg-gradient-to-br from-slate-950 to-slate-700 p-5 text-white shadow-[0_10px_30px_rgba(17,24,39,0.12)]">
-              <span className="inline-flex h-8 items-center rounded-full bg-white/10 px-3 text-xs font-black">
-                Tip
-              </span>
-              <p className="mt-3 text-sm font-bold leading-7 text-white/75">
-                하루에 여러 게시물을 등록할 수 있습니다. 같은 날짜에 여러 게시물이 있으면
-                캘린더에서 카드가 겹쳐 보이고, 날짜를 누르면 선택 팝업이 열립니다.
-              </p>
-            </section>
-          </aside>
-        </div>
+              <section className="rounded-[2rem] bg-gradient-to-br from-neutral-950 to-neutral-700 p-5 text-white shadow-[0_10px_30px_rgba(10,10,10,0.12)]">
+                <span className="inline-flex h-8 items-center rounded-full bg-white/10 px-3 text-xs font-black">
+                  Tip
+                </span>
+                <p className="mt-3 text-sm font-bold leading-7 text-white/75">
+                  홈 화면에서 위로 스와이프하면 월캘린더가 확장됩니다. 같은 날짜에 여러 게시물이 있으면
+                  겹친 카드와 개수 배지로 표시됩니다.
+                </p>
+              </section>
+            </aside>
+          </div>
+        )}
       </div>
 
-      <nav className="fixed bottom-4 left-1/2 z-30 grid min-h-[72px] w-[min(430px,calc(100%-28px))] -translate-x-1/2 grid-cols-[1fr_1fr_1fr_62px] items-center gap-1.5 rounded-[1.75rem] border border-white/70 bg-white/90 p-2 shadow-[0_18px_60px_rgba(17,24,39,0.16)] backdrop-blur-xl lg:hidden">
+      <nav className="fixed bottom-4 left-1/2 z-30 grid min-h-[72px] w-[min(430px,calc(100%-28px))] -translate-x-1/2 grid-cols-[1fr_1fr_1fr_62px] items-center gap-1.5 rounded-[1.75rem] border border-white/70 bg-white/90 p-2 shadow-[0_18px_60px_rgba(10,10,10,0.16)] backdrop-blur-xl">
         {viewOptions.map((view) => (
           <button
             type="button"
             key={view.value}
             className={`grid min-h-14 place-items-center gap-1 rounded-2xl text-[11px] font-black transition ${
-              activeView === view.value ? "bg-slate-100 text-slate-950" : "text-slate-400"
+              activeView === view.value ? "bg-neutral-100 text-neutral-950" : "text-neutral-400"
             }`}
             onClick={() => setActiveView(view.value)}
           >
@@ -2119,8 +2336,8 @@ export default function App() {
 
         <button
           type="button"
-          className="grid h-[58px] w-[58px] place-items-center rounded-full bg-slate-950 text-white shadow-[0_14px_30px_rgba(17,24,39,0.26)]"
-          onClick={() => openCreateOverlay(todayKey)}
+          className="grid h-[58px] w-[58px] place-items-center rounded-full bg-orange-500 text-white shadow-[0_14px_30px_rgba(255,104,20,0.35)]"
+          onClick={() => openCreateOverlay(selectedDate)}
           aria-label="새 게시물 추가"
         >
           <Icon name="plus" size={24} />

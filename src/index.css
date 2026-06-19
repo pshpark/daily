@@ -12,7 +12,7 @@
   }
 
   html {
-    background: #eef1f6;
+    background: #efefec;
   }
 
   body {
@@ -20,9 +20,9 @@
     min-width: 320px;
     min-height: 100vh;
     background:
-      radial-gradient(circle at top left, rgba(79, 70, 229, 0.13), transparent 34%),
-      linear-gradient(180deg, #f8fafc 0%, #eef1f6 100%);
-    color: #111827;
+      radial-gradient(circle at top left, rgba(255, 104, 20, 0.12), transparent 32%),
+      linear-gradient(180deg, #f7f7f4 0%, #e9e9e5 100%);
+    color: #151515;
     font-family:
       Inter,
       Pretendard,
@@ -50,7 +50,7 @@
   textarea:focus-visible,
   select:focus-visible,
   [role="button"]:focus-visible {
-    outline: 3px solid rgba(79, 70, 229, 0.22);
+    outline: 3px solid rgba(255, 105, 20, 0.24);
     outline-offset: 3px;
   }
 }
