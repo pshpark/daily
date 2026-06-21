@@ -1233,8 +1233,8 @@ function MiniDotCalendar({
                   : isToday
                     ? "bg-orange-500"
                     : hasRecord
-                      ? "bg-neutral-950"
-                      : "bg-neutral-200",
+                      ? "bg-black"
+                      : "bg-white",
               ].join(" ")}
               onClick={() => handleDatePress(cell.dateKey, dayRecords)}
               onDoubleClick={() => onCreate(cell.dateKey)}
@@ -1487,8 +1487,8 @@ function HomeCalendarView({
     >
       <div
         className={[
-          "relative overflow-hidden rounded-[2.3rem] border border-white/70 bg-[#e7e5df]/90 shadow-[0_20px_70px_rgba(10,10,10,0.12)] backdrop-blur-xl transition-all duration-500 ease-out",
-          homeMode === "expanded" ? "min-h-[calc(100vh-126px)] p-4 sm:p-6" : "min-h-[calc(100vh-126px)] p-5 sm:p-8",
+          "relative overflow-hidden bg-[#e7e5df]/90 shadow-[0_20px_70px_rgba(10,10,10,0.12)] backdrop-blur-xl transition-all duration-500 ease-out pb-[128px]",
+          homeMode === "expanded" ? "min-h-[100dvh] pt-4 pl-4 pr-4 sm:pt-6 sm:pl-6 sm:pr-6 pb-[128px]" : "min-h-[100dvh] pt-5 pl-5 pr-5 sm:pt-8 sm:pl-8 sm:pr-8 pb-[128px]",
         ].join(" ")}
       >
         <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-orange-400/10 blur-3xl" />
@@ -1663,18 +1663,6 @@ function HomeCalendarView({
             />
           </div>
         </div>
-
-        <button
-          type="button"
-          className="absolute bottom-4 left-1/2 z-20 grid -translate-x-1/2 place-items-center gap-1 rounded-full bg-white/80 px-4 py-2 text-xs font-black text-neutral-500 shadow-[0_10px_30px_rgba(10,10,10,0.08)] backdrop-blur transition hover:bg-white"
-          onClick={() => setHomeMode((prev) => (prev === "compact" ? "expanded" : "compact"))}
-        >
-          <span className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
-          <span className="flex items-center gap-1">
-            {homeMode === "compact" ? "위로 밀어 캘린더 보기" : "아래로 내려 접기"}
-            <Icon name={homeMode === "compact" ? "chevronUp" : "chevronDown"} size={14} />
-          </span>
-        </button>
       </div>
     </section>
   );
@@ -1921,42 +1909,44 @@ function GalleryView({
 
 function AppHeader({ query, setQuery, onCreate }) {
   return (
-    <header className={`${glassCard} mb-5 flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between`}>
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-neutral-950 text-white shadow-[0_12px_28px_rgba(10,10,10,0.22)]">
-          <Icon name="star" size={18} />
+    <div class="pt-4 pl-4 pr-4">
+      <header className={`${glassCard} mb-5 flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between`}>
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-neutral-950 text-white shadow-[0_12px_28px_rgba(10,10,10,0.22)]">
+            <Icon name="star" size={18} />
+          </div>
+
+          <div className="min-w-0">
+            <p className="text-xs font-black text-neutral-400">Daily Fan Log</p>
+            <h1 className="mt-0.5 text-2xl font-black leading-tight text-neutral-950">
+              라이브러리
+            </h1>
+          </div>
         </div>
 
-        <div className="min-w-0">
-          <p className="text-xs font-black text-neutral-400">Daily Fan Log</p>
-          <h1 className="mt-0.5 text-2xl font-black leading-tight text-neutral-950">
-            라이브러리
-          </h1>
+        <div className="flex flex-1 items-center gap-3 lg:justify-end">
+          <label className="flex h-12 w-full max-w-md items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 text-neutral-400">
+            <Icon name="search" size={18} />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="게시물 검색"
+              className="w-full bg-transparent text-sm font-bold text-neutral-950 outline-none placeholder:text-neutral-300"
+            />
+          </label>
+
+          <button
+            type="button"
+            className={`${primaryButton} hidden lg:inline-flex`}
+            onClick={onCreate}
+          >
+            <Icon name="plus" size={18} />
+            새 게시물
+          </button>
         </div>
-      </div>
-
-      <div className="flex flex-1 items-center gap-3 lg:justify-end">
-        <label className="flex h-12 w-full max-w-md items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 text-neutral-400">
-          <Icon name="search" size={18} />
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="게시물 검색"
-            className="w-full bg-transparent text-sm font-bold text-neutral-950 outline-none placeholder:text-neutral-300"
-          />
-        </label>
-
-        <button
-          type="button"
-          className={`${primaryButton} hidden lg:inline-flex`}
-          onClick={onCreate}
-        >
-          <Icon name="plus" size={18} />
-          새 게시물
-        </button>
-      </div>
-    </header>
+      </header>
+    </div>
   );
 }
 
@@ -2133,7 +2123,7 @@ export default function App() {
   };
 
   return (
-    <main className="min-h-screen px-3 py-4 pb-28 sm:px-5 lg:px-7 lg:py-7 lg:pb-7">
+    <main className="min-h-screen">
       <div className="mx-auto w-full max-w-[1440px]">
         {activeView !== "calendar" && (
           <AppHeader
@@ -2161,160 +2151,162 @@ export default function App() {
             onOpenDayPosts={openDayPosts}
           />
         ) : (
-          <div className="grid items-start gap-5 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_280px]">
-            <aside className="hidden gap-4 lg:grid">
-              <section className={`${glassCard} flex items-center gap-3 p-4`}>
-                <div className="grid h-[52px] w-[52px] place-items-center rounded-3xl bg-gradient-to-br from-neutral-950 to-orange-500 text-2xl font-black text-white">
-                  F
-                </div>
-                <div>
-                  <strong className="block text-base font-black text-neutral-950">My Space</strong>
-                  <span className="mt-1 block text-sm font-bold text-neutral-400">
-                    개인 팬활동 기록장
-                  </span>
-                </div>
-              </section>
-
-              <section className={`${glassCard} p-4`}>
-                <div className="text-xs font-black text-neutral-400">메뉴</div>
-                <nav className="mt-3 grid gap-2">
-                  {viewOptions.map((view) => (
-                    <button
-                      type="button"
-                      key={view.value}
-                      className={`flex min-h-11 items-center gap-3 rounded-2xl px-3 text-left text-sm font-black transition ${
-                        activeView === view.value
-                          ? "bg-neutral-950 text-white"
-                          : "text-neutral-500 hover:bg-neutral-100"
-                      }`}
-                      onClick={() => setActiveView(view.value)}
-                    >
-                      <Icon name={view.icon} size={18} />
-                      {view.label}
-                    </button>
-                  ))}
-                </nav>
-              </section>
-
-              <section className={`${glassCard} p-4`}>
-                <div className="text-xs font-black text-neutral-400">카테고리</div>
-                <div className="mt-3 grid gap-2">
-                  <button
-                    type="button"
-                    className={`flex min-h-11 items-center justify-between rounded-2xl px-3 text-sm font-black transition ${
-                      categoryFilter === "all"
-                        ? "bg-neutral-950 text-white"
-                        : "text-neutral-500 hover:bg-neutral-100"
-                    }`}
-                    onClick={() => setCategoryFilter("all")}
-                  >
-                    전체
-                    <span
-                      className={`grid h-6 min-w-7 place-items-center rounded-full px-2 text-xs ${
-                        categoryFilter === "all" ? "bg-white/15 text-white" : "bg-neutral-100 text-neutral-400"
-                      }`}
-                    >
-                      {records.length}
+          <div class="pr-4 pl-4 pb-[128px]">
+            <div className="grid items-start gap-5 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_280px]">
+              <aside className="hidden gap-4 lg:grid">
+                <section className={`${glassCard} flex items-center gap-3 p-4`}>
+                  <div className="grid h-[52px] w-[52px] place-items-center rounded-3xl bg-gradient-to-br from-neutral-950 to-orange-500 text-2xl font-black text-white">
+                    F
+                  </div>
+                  <div>
+                    <strong className="block text-base font-black text-neutral-950">My Space</strong>
+                    <span className="mt-1 block text-sm font-bold text-neutral-400">
+                      개인 팬활동 기록장
                     </span>
-                  </button>
+                  </div>
+                </section>
 
-                  {categoryOptions.map((category) => (
+                <section className={`${glassCard} p-4`}>
+                  <div className="text-xs font-black text-neutral-400">메뉴</div>
+                  <nav className="mt-3 grid gap-2">
+                    {viewOptions.map((view) => (
+                      <button
+                        type="button"
+                        key={view.value}
+                        className={`flex min-h-11 items-center gap-3 rounded-2xl px-3 text-left text-sm font-black transition ${
+                          activeView === view.value
+                            ? "bg-neutral-950 text-white"
+                            : "text-neutral-500 hover:bg-neutral-100"
+                        }`}
+                        onClick={() => setActiveView(view.value)}
+                      >
+                        <Icon name={view.icon} size={18} />
+                        {view.label}
+                      </button>
+                    ))}
+                  </nav>
+                </section>
+
+                <section className={`${glassCard} p-4`}>
+                  <div className="text-xs font-black text-neutral-400">카테고리</div>
+                  <div className="mt-3 grid gap-2">
                     <button
                       type="button"
-                      key={category.value}
                       className={`flex min-h-11 items-center justify-between rounded-2xl px-3 text-sm font-black transition ${
-                        categoryFilter === category.value
+                        categoryFilter === "all"
                           ? "bg-neutral-950 text-white"
                           : "text-neutral-500 hover:bg-neutral-100"
                       }`}
-                      onClick={() => setCategoryFilter(category.value)}
+                      onClick={() => setCategoryFilter("all")}
                     >
-                      {category.label}
+                      전체
                       <span
                         className={`grid h-6 min-w-7 place-items-center rounded-full px-2 text-xs ${
-                          categoryFilter === category.value
-                            ? "bg-white/15 text-white"
-                            : "bg-neutral-100 text-neutral-400"
+                          categoryFilter === "all" ? "bg-white/15 text-white" : "bg-neutral-100 text-neutral-400"
                         }`}
                       >
-                        {records.filter((record) => record.category === category.value).length}
+                        {records.length}
                       </span>
                     </button>
-                  ))}
-                </div>
-              </section>
-            </aside>
 
-            <div className="min-w-0">
-              {activeView === "collection" && (
-                <CollectionView
-                  records={records}
-                  filteredRecords={filteredRecords}
-                  categoryFilter={categoryFilter}
-                  setCategoryFilter={setCategoryFilter}
-                  onOpenRecord={openViewOverlay}
-                  onCreate={() => openCreateOverlay(todayKey)}
-                />
-              )}
+                    {categoryOptions.map((category) => (
+                      <button
+                        type="button"
+                        key={category.value}
+                        className={`flex min-h-11 items-center justify-between rounded-2xl px-3 text-sm font-black transition ${
+                          categoryFilter === category.value
+                            ? "bg-neutral-950 text-white"
+                            : "text-neutral-500 hover:bg-neutral-100"
+                        }`}
+                        onClick={() => setCategoryFilter(category.value)}
+                      >
+                        {category.label}
+                        <span
+                          className={`grid h-6 min-w-7 place-items-center rounded-full px-2 text-xs ${
+                            categoryFilter === category.value
+                              ? "bg-white/15 text-white"
+                              : "bg-neutral-100 text-neutral-400"
+                          }`}
+                        >
+                          {records.filter((record) => record.category === category.value).length}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              </aside>
 
-              {activeView === "gallery" && (
-                <GalleryView
-                  records={records}
-                  filteredRecords={filteredRecords}
-                  categoryFilter={categoryFilter}
-                  setCategoryFilter={setCategoryFilter}
-                  onOpenRecord={openViewOverlay}
-                  onCreate={() => openCreateOverlay(todayKey)}
-                />
-              )}
-            </div>
+              <div className="min-w-0">
+                {activeView === "collection" && (
+                  <CollectionView
+                    records={records}
+                    filteredRecords={filteredRecords}
+                    categoryFilter={categoryFilter}
+                    setCategoryFilter={setCategoryFilter}
+                    onOpenRecord={openViewOverlay}
+                    onCreate={() => openCreateOverlay(todayKey)}
+                  />
+                )}
 
-            <aside className="grid gap-4 xl:block xl:space-y-4">
-              <section className={`${glassCard} p-4`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-black text-neutral-400">Overview</p>
-                    <h2 className="mt-1 text-xl font-black leading-tight text-neutral-950">
-                      내 기록 요약
-                    </h2>
+                {activeView === "gallery" && (
+                  <GalleryView
+                    records={records}
+                    filteredRecords={filteredRecords}
+                    categoryFilter={categoryFilter}
+                    setCategoryFilter={setCategoryFilter}
+                    onOpenRecord={openViewOverlay}
+                    onCreate={() => openCreateOverlay(todayKey)}
+                  />
+                )}
+              </div>
+
+              <aside className="grid gap-4 xl:block xl:space-y-4">
+                <section className={`${glassCard} p-4`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-black text-neutral-400">Overview</p>
+                      <h2 className="mt-1 text-xl font-black leading-tight text-neutral-950">
+                        내 기록 요약
+                      </h2>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-neutral-950 text-white"
+                      onClick={() => openCreateOverlay(todayKey)}
+                    >
+                      <Icon name="plus" />
+                    </button>
                   </div>
 
-                  <button
-                    type="button"
-                    className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-neutral-950 text-white"
-                    onClick={() => openCreateOverlay(todayKey)}
-                  >
-                    <Icon name="plus" />
-                  </button>
-                </div>
+                  <div className="mt-4 grid gap-3">
+                    {[
+                      { label: "전체 게시물", value: records.length },
+                      { label: "이미지", value: photoCount },
+                      { label: "YouTube", value: youtubeCount },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className="flex min-h-14 items-center justify-between rounded-2xl border border-neutral-200 bg-white px-4"
+                      >
+                        <span className="text-sm font-black text-neutral-400">{item.label}</span>
+                        <strong className="text-2xl font-black text-neutral-950">{item.value}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </section>
 
-                <div className="mt-4 grid gap-3">
-                  {[
-                    { label: "전체 게시물", value: records.length },
-                    { label: "이미지", value: photoCount },
-                    { label: "YouTube", value: youtubeCount },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="flex min-h-14 items-center justify-between rounded-2xl border border-neutral-200 bg-white px-4"
-                    >
-                      <span className="text-sm font-black text-neutral-400">{item.label}</span>
-                      <strong className="text-2xl font-black text-neutral-950">{item.value}</strong>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <section className="rounded-[2rem] bg-gradient-to-br from-neutral-950 to-neutral-700 p-5 text-white shadow-[0_10px_30px_rgba(10,10,10,0.12)]">
-                <span className="inline-flex h-8 items-center rounded-full bg-white/10 px-3 text-xs font-black">
-                  Tip
-                </span>
-                <p className="mt-3 text-sm font-bold leading-7 text-white/75">
-                  홈 화면에서 위로 스와이프하면 월캘린더가 확장됩니다. 같은 날짜에 여러 게시물이 있으면
-                  겹친 카드와 개수 배지로 표시됩니다.
-                </p>
-              </section>
-            </aside>
+                <section className="rounded-[2rem] bg-gradient-to-br from-neutral-950 to-neutral-700 p-5 text-white shadow-[0_10px_30px_rgba(10,10,10,0.12)]">
+                  <span className="inline-flex h-8 items-center rounded-full bg-white/10 px-3 text-xs font-black">
+                    Tip
+                  </span>
+                  <p className="mt-3 text-sm font-bold leading-7 text-white/75">
+                    홈 화면에서 위로 스와이프하면 월캘린더가 확장됩니다. 같은 날짜에 여러 게시물이 있으면
+                    겹친 카드와 개수 배지로 표시됩니다.
+                  </p>
+                </section>
+              </aside>
+            </div>
           </div>
         )}
       </div>
